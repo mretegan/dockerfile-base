@@ -23,13 +23,15 @@ RUN curl -o nginx-release.rpm http://nginx.org/packages/centos/7/noarch/RPMS/ngi
 # - node.js for TTY.js
 # - PIP so we can install EasyDav dependencies
 # - patching dependencies
+# - sudo (for users installing packages)
 RUN yum install -y \
   supervisor \
   nginx \
-  git vim-enhanced nano wget tmux screen bash-completion \
+  git vim-enhanced nano wget tmux screen bash-completion man \
   nodejs \
   python-pip \
-  patch
+  patch \
+  sudo
 
 # Install EasyDAV dependencies
 RUN pip install kid flup
