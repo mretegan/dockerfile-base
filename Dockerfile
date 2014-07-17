@@ -1,27 +1,81 @@
 # DOCKER-VERSION 1.0
 
 # Base image for other DIT4C platform images
-FROM fedora:20
+FROM centos:centos7
 MAINTAINER t.dettrick@uq.edu.au
 
-# Install DNF to make this quicker
-RUN yum install -y dnf
 # Update all packages
-RUN dnf upgrade -y
+RUN yum upgrade -y
 
-# Run install script inside the container
-COPY install.sh /tmp/install.sh
+# Install EPEL repo
+RUN curl -o epel-release.rpm http://mirror.aarnet.edu.au/pub/epel/beta/7/x86_64/epel-release-7-0.2.noarch.rpm && \
+  yum localinstall -y epel-release.rpm && \
+  rm epel-release.rpm
+# Install Nginx repo
+RUN curl -o nginx-release.rpm http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm && \
+  yum localinstall -y nginx-release.rpm && \
+  rm nginx-release.rpm
+  
+# Install
+# - supervisord for monitoring
+# - nginx for reverse-proxying
+# - Git and development tools
+# - node.js for TTY.js
+# - PIP so we can install EasyDav dependencies
+# - patching dependencies
+RUN yum install -y \
+  supervisor \
+  nginx \
+  git vim-enhanced nano wget tmux screen bash-completion \
+  nodejs \
+  python-pip \
+  patch
+
+# Install EasyDAV dependencies
+RUN pip install kid flup
+# Install NPM
+RUN yum install -y tar gcc-c++ && \ 
+  curl -L https://npmjs.org/install.sh | clean=no sh
+
+# Install TTY.js with updated term.js
+RUN git clone https://github.com/soumith/tty.js.git /opt/tty.js && \
+  cd /opt/tty.js && \
+  npm install
+
+# Install EasyDAV
 COPY easydav_fix-archive-download.patch /tmp/
-RUN bash /tmp/install.sh
+RUN cd /opt && \
+  curl http://koti.kapsi.fi/jpa/webdav/easydav-0.4.tar.gz | tar zxvf - && \
+  mv easydav-0.4 easydav && \
+  cd easydav && \
+  patch -p1 < /tmp/easydav_fix-archive-download.patch && \
+  cd -
+
+# Install zedrem
+RUN cd /usr/local/bin && \
+  curl http://get.zedapp.org | bash && \
+  cd -
+  
+# Create researcher user for notebook
+RUN /usr/sbin/useradd researcher
+
+# Log directory for easydav & supervisord
+RUN mkdir -p /var/log/{easydav,supervisor}
+
+# Set default password for root, and remove password for researcher
+RUN yum install -y passwd && \
+  echo 'root:developer' | chpasswd && \
+  passwd -d researcher && passwd -u -f researcher
 
 # Add supporting files (directory at a time to improve build speed)
 COPY etc /etc
 COPY opt /opt
 COPY var /var
-# Chowned to root, so reverse that change
+# Set logging directory permissions appropriately
 RUN chown -R researcher /var/log/easydav /var/log/supervisor
-RUN chown -R nginx /var/lib/nginx
+# Ensure nginx directories have proper ownership
+#RUN chown -R nginx /var/lib/nginx
 
-EXPOSE 23 80
+EXPOSE 80
 # Run all processes through supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
