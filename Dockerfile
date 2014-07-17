@@ -75,8 +75,9 @@ COPY opt /opt
 COPY var /var
 # Set logging directory permissions appropriately
 RUN chown -R researcher /var/log/easydav /var/log/supervisor
-# Ensure nginx directories have proper ownership
-#RUN chown -R nginx /var/lib/nginx
+
+# Check nginx config is OK
+RUN nginx -t
 
 EXPOSE 80
 # Run all processes through supervisord
