@@ -28,6 +28,7 @@ RUN yum install -y \
   supervisor \
   nginx \
   git vim-enhanced nano wget tmux screen bash-completion man \
+  tar zip unzip \
   nodejs \
   python-pip \
   patch \
