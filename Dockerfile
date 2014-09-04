@@ -8,13 +8,13 @@ MAINTAINER t.dettrick@uq.edu.au
 RUN yum upgrade -y
 
 # Install EPEL repo
-RUN curl -o epel-release.rpm http://mirror.aarnet.edu.au/pub/epel/beta/7/x86_64/epel-release-7-0.2.noarch.rpm && \
-  yum localinstall -y epel-release.rpm && \
-  rm epel-release.rpm
+RUN rpm -Uvh http://mirror.aarnet.edu.au/pub/epel/beta/7/x86_64/$( \
+  curl http://mirror.aarnet.edu.au/pub/epel/7/x86_64/repoview/epel-release.html | \
+  grep -Po 'epel-release.*?\.rpm' | head -1)
 # Install Nginx repo
-RUN curl -o nginx-release.rpm http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm && \
-  yum localinstall -y nginx-release.rpm && \
-  rm nginx-release.rpm
+RUN rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/$( \
+  curl http://nginx.org/packages/centos/7/noarch/RPMS/ | \
+  grep -Po 'nginx-release.*?\.rpm' | head -1)
   
 # Install
 # - supervisord for monitoring
