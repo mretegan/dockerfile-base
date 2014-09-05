@@ -83,3 +83,8 @@ RUN nginx -t
 EXPOSE 80
 # Run all processes through supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+
+# Home & log dirs should be exportable
+VOLUME ["/home/researcher", "/var/log"]
+
+
