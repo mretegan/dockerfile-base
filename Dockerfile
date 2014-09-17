@@ -41,7 +41,7 @@ RUN yum install -y tar gcc-c++ && \
   curl -L https://npmjs.org/install.sh | clean=no sh
 
 # Install TTY.js with updated term.js
-RUN git clone https://github.com/soumith/tty.js.git /opt/tty.js && \
+RUN git clone -b single-window  --single-branch https://github.com/dit4c/tty.js.git /opt/tty.js && \
   cd /opt/tty.js && \
   npm install
 
