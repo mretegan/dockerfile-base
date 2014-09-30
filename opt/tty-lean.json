@@ -6,5 +6,6 @@
   "limitPerUser": 1000,
   "localOnly": true,
   "cwd": "/home/developer",
-  "log": true
+  "log": true,
+  "syncSession": true
 }
