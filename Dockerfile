@@ -4,6 +4,9 @@
 FROM centos:centos7
 MAINTAINER t.dettrick@uq.edu.au
 
+# Remove yum setting which blocks man page install
+RUN sed -i'' 's/tsflags=nodocs/tsflags=/' /etc/yum.conf
+
 # Update all packages
 RUN yum upgrade -y
 
@@ -15,7 +18,7 @@ RUN rpm -Uvh http://mirror.aarnet.edu.au/pub/epel/beta/7/x86_64/$( \
 RUN rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/$( \
   curl http://nginx.org/packages/centos/7/noarch/RPMS/ | \
   grep -Po 'nginx-release.*?\.rpm' | head -1)
-  
+
 # Install
 # - supervisord for monitoring
 # - nginx for reverse-proxying
@@ -37,7 +40,7 @@ RUN yum install -y \
 # Install EasyDAV dependencies
 RUN pip install kid flup
 # Install NPM
-RUN yum install -y tar gcc-c++ && \ 
+RUN yum install -y tar gcc-c++ && \
   curl -L https://npmjs.org/install.sh | clean=no sh
 
 # Install tty-lean.js
@@ -56,7 +59,7 @@ RUN cd /opt && \
 RUN cd /usr/local/bin && \
   curl http://get.zedapp.org | bash && \
   cd -
-  
+
 # Create researcher user for notebook
 RUN /usr/sbin/useradd researcher
 
@@ -84,5 +87,3 @@ CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 
 # Home & log dirs should be exportable
 VOLUME ["/home/researcher", "/var/log"]
-
-
