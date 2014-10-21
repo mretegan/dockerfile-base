@@ -11,9 +11,9 @@ RUN sed -i'' 's/tsflags=nodocs/tsflags=/' /etc/yum.conf
 RUN yum upgrade -y
 
 # Install EPEL repo
-RUN rpm -Uvh http://mirror.aarnet.edu.au/pub/epel/beta/7/x86_64/$( \
+RUN rpm -Uvh http://mirror.aarnet.edu.au/pub/epel/7/x86_64/$( \
   curl http://mirror.aarnet.edu.au/pub/epel/7/x86_64/repoview/epel-release.html | \
-  grep -Po 'epel-release.*?\.rpm' | head -1)
+  grep -Po 'e/epel-release.*?\.rpm' | head -1)
 # Install Nginx repo
 RUN rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/$( \
   curl http://nginx.org/packages/centos/7/noarch/RPMS/ | \
