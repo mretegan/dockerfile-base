@@ -8,7 +8,7 @@ MAINTAINER t.dettrick@uq.edu.au
 RUN sed -i'' 's/tsflags=nodocs/tsflags=/' /etc/yum.conf
 
 # Update all packages
-RUN yum upgrade -y
+RUN yum upgrade -y && rpm -qa | xargs yum reinstall -y
 
 # Install EPEL repo
 RUN rpm -Uvh http://mirror.aarnet.edu.au/pub/epel/7/x86_64/$( \
