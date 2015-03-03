@@ -1,7 +1,7 @@
 dockerfile-dit4c-container-base
 ===============================
 
-The base image for DIT4C containers.
+The base image for DIT4C containers, which includes a [tty-lean.js][tty-lean.js] shell and a file uploader.
 
 The essential rules/guidelines that it follows are:
 
@@ -12,4 +12,4 @@ The essential rules/guidelines that it follows are:
 3. `/home/researcher` should contain as few extraneous files as possible.
 4. The less use of root privileges the better. Services should run as "researcher" when possible.
 
-
+[tty-lean.js]: https://github.com/dit4c/tty-lean.js
