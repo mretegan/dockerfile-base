@@ -1,14 +1,18 @@
 # DOCKER-VERSION 1.0
 
 # Base image for other DIT4C platform images
-FROM centos:centos7
+FROM centos:7
 MAINTAINER t.dettrick@uq.edu.au
 
 # Remove yum setting which blocks man page install
 RUN sed -i'' 's/tsflags=nodocs/tsflags=/' /etc/yum.conf
 
-# Update all packages
-RUN yum upgrade -y && rpm -qa | xargs yum reinstall -y
+# Directories that don't need to be preserved in images
+VOLUME ["/var/cache/yum"]
+
+# Update all packages and install docs
+# (reinstalling glibc-common would add 100MB and no docs, so it's excluded)
+RUN yum upgrade -y && rpm -qa | grep -v glibc-common | xargs yum reinstall -y
 
 # Install EPEL repo
 RUN rpm -Uvh http://mirror.aarnet.edu.au/pub/epel/7/x86_64/$( \
@@ -39,12 +43,12 @@ RUN yum install -y \
 
 # Install EasyDAV dependencies
 RUN pip install kid flup
-# Install NPM
-RUN yum install -y tar gcc-c++ && \
-  curl -L https://npmjs.org/install.sh | clean=no sh
 
-# Install tty-lean.js
-RUN npm install -g tty-lean.js
+# Install NPM & tty-lean.js
+RUN yum install -y tar gcc-c++ && \
+  curl -L https://npmjs.org/install.sh | clean=no sh && \
+  npm install -g tty-lean.js && \
+  rm -r /root/.npm
 
 # Install EasyDAV
 COPY easydav_fix-archive-download.patch /tmp/
@@ -53,11 +57,6 @@ RUN cd /opt && \
   mv easydav-0.4 easydav && \
   cd easydav && \
   patch -p1 < /tmp/easydav_fix-archive-download.patch && \
-  cd -
-
-# Install zedrem
-RUN cd /usr/local/bin && \
-  curl http://get.zedapp.org | bash && \
   cd -
 
 # Create researcher user for notebook
@@ -85,5 +84,5 @@ EXPOSE 80
 # Run all processes through supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 
-# Home & log dirs should be exportable
-VOLUME ["/home/researcher", "/var/log"]
+# Logs do not need to be preserved when exporting
+VOLUME ["/var/log"]
