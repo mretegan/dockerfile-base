@@ -1,7 +1,6 @@
 ## Installation and management of software
 Cmnd_Alias SOFTWARE = \
   /bin/rpm, /usr/bin/yum, /usr/bin/dnf, \
-  /usr/bin/pip, /usr/bin/python-pip, \
   /usr/bin/npm
 
 # Defaults specification
