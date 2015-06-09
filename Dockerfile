@@ -4,22 +4,31 @@
 FROM centos:7
 MAINTAINER t.dettrick@uq.edu.au
 
-# Remove yum setting which blocks man page install
-RUN sed -i'' 's/tsflags=nodocs/tsflags=/' /etc/yum.conf
+# Create researcher user for notebook
+RUN /usr/sbin/useradd researcher && \
+  (chown -R researcher:researcher / || true) && \
+  curl -L http://portable.proot.me/proot-x86_64 > /usr/sbin/proot && \
+  chmod +x /usr/sbin/proot
 
 # Directories that don't need to be preserved in images
 VOLUME ["/var/cache/yum"]
 
+USER researcher
+
+# Remove yum setting which blocks man page install
+RUN sed -i'' 's/tsflags=nodocs/tsflags=/' /etc/yum.conf
+
 # Update all packages and install docs
 # (reinstalling glibc-common would add 100MB and no docs, so it's excluded)
-RUN yum upgrade -y && rpm -qa | grep -v glibc-common | xargs yum reinstall -y
+RUN proot -S . yum upgrade -y && \
+  rpm -qa | grep -v glibc-common | grep -v filesystem | xargs proot -S . yum reinstall -y
 
 # Install EPEL repo
-RUN rpm -Uvh http://mirror.aarnet.edu.au/pub/epel/7/x86_64/$( \
+RUN proot -S . yum install -y http://mirror.aarnet.edu.au/pub/epel/7/x86_64/$(\
   curl http://mirror.aarnet.edu.au/pub/epel/7/x86_64/repoview/epel-release.html | \
   grep -Po 'e/epel-release.*?\.rpm' | head -1)
 # Install Nginx repo
-RUN rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/$( \
+RUN proot -S . yum install -y http://nginx.org/packages/centos/7/noarch/RPMS/$(\
   curl http://nginx.org/packages/centos/7/noarch/RPMS/ | \
   grep -Po 'nginx-release.*?\.rpm' | head -1)
 
@@ -30,25 +39,23 @@ RUN rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/$( \
 # - node.js for TTY.js
 # - PIP so we can install EasyDav dependencies
 # - patching dependencies
-# - sudo (for users installing packages)
-RUN yum install -y \
+RUN proot -S . yum install -y \
   supervisor \
   nginx \
   git vim-enhanced nano wget tmux screen bash-completion man \
   tar zip unzip \
   nodejs \
   python-pip \
-  patch \
-  sudo
+  patch
 
 # Install EasyDAV dependencies
-RUN pip install kid flup
+RUN proot -S . pip install kid flup
 
 # Install NPM & tty-lean.js
-RUN yum install -y tar gcc-c++ && \
-  curl -L https://npmjs.org/install.sh | clean=no sh && \
-  npm install -g tty-lean.js && \
-  rm -r /root/.npm
+RUN (proot -S . yum install -y tar gcc-c++ || proot -S . yum install -y tar gcc-c++) && \
+  curl -L https://npmjs.org/install.sh | clean=no proot -S . bash && \
+  proot -S . npm install -g tty-lean.js && \
+  rm -r ~/.npm
 
 # Install EasyDAV
 COPY easydav_fix-archive-download.patch /tmp/
@@ -59,28 +66,18 @@ RUN cd /opt && \
   patch -p1 < /tmp/easydav_fix-archive-download.patch && \
   cd -
 
-# Create researcher user for notebook
-RUN /usr/sbin/useradd researcher
-
 # Log directory for easydav & supervisord
 RUN mkdir -p /var/log/{easydav,supervisor}
-
-# Set default password for root, and remove password for researcher
-RUN yum install -y passwd && \
-  echo 'root:developer' | chpasswd && \
-  passwd -d researcher && passwd -u -f researcher
 
 # Add supporting files (directory at a time to improve build speed)
 COPY etc /etc
 COPY opt /opt
 COPY var /var
-# Set logging directory permissions appropriately
-RUN chown -R researcher /var/log/easydav /var/log/supervisor
 
 # Check nginx config is OK
 RUN nginx -t
 
-EXPOSE 80
+EXPOSE 8080
 # Run all processes through supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 
