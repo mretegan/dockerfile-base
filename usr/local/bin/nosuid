@@ -9,3 +9,4 @@ pretend to be root using `fsudo <cmd>`.
 `fsudo` is an alias for `proot -S / <cmd>`. Try `man proot` for more info.
 
 MSG
+exit 1
