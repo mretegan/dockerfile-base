@@ -81,6 +81,11 @@ COPY etc /etc
 COPY opt /opt
 COPY var /var
 
+# Because COPY doesn't respoect USER...
+USER root
+RUN chown -R researcher:researcher /etc /opt /var
+USER researcher
+
 # Remove setuid & setgid flags from binaries
 RUN find / -perm +4000 -xdev -not -type f -exec chmod u-s {} \; && \
   find / -perm +2000 -xdev -type f -exec chmod g-s {} \;
