@@ -15,7 +15,7 @@ RUN /usr/sbin/useradd researcher && \
   rm -rf /root
 
 # Directories that don't need to be preserved in images
-VOLUME ["/var/cache/dnf"]
+VOLUME ["/var/cache/yum", "/tmp"]
 
 USER researcher
 
