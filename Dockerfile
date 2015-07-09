@@ -1,23 +1,21 @@
 # DOCKER-VERSION 1.0
 
 # Base image for other DIT4C platform images
-FROM centos:7
+FROM dit4c/centos-notroot:7
 MAINTAINER t.dettrick@uq.edu.au
 
+USER root
+
 # Create researcher user for notebook
-RUN /usr/sbin/useradd researcher && \
+RUN groupmod -n researcher notroot && \
+  usermod -l researcher -m -d /home/researcher notroot && \
   yum remove -y rootfiles && \
-  curl -s -L http://portable.proot.me/proot-x86_64 > /usr/sbin/proot && \
-  chmod +x /usr/sbin/proot && \
-  find / -mindepth 1 -maxdepth 1 -type d | \
-    grep -v -E 'dev|proc|sys' | \
-    xargs chown -R researcher:researcher && \
-  rm -rf /root
+  rm -rf /root /var/cache/yum/* /tmp/*
+
+USER researcher
 
 # Directories that don't need to be preserved in images
 VOLUME ["/var/cache/yum", "/tmp"]
-
-USER researcher
 
 COPY /usr/local/bin /usr/local/bin
 
@@ -59,10 +57,10 @@ RUN fsudo yum install -y \
 RUN fsudo pip install kid flup
 
 # Install NPM & tty-lean.js
-RUN (fsudo yum install -y tar gcc-c++ || fsudo yum install -y tar gcc-c++) && \
+RUN fsudo rpm --rebuilddb && fsudo yum install -y tar gcc-c++ && \
   curl -L https://npmjs.org/install.sh | clean=no fsudo bash && \
   fsudo npm install -g tty-lean.js && \
-  rm -r ~/.npm
+  fsudo rm -r ~/.npm
 
 # Install EasyDAV
 COPY easydav_fix-archive-download.patch /tmp/
@@ -81,7 +79,7 @@ COPY etc /etc
 COPY opt /opt
 COPY var /var
 
-# Because COPY doesn't respoect USER...
+# Because COPY doesn't respect USER...
 USER root
 RUN chown -R researcher:researcher /etc /opt /var
 USER researcher
