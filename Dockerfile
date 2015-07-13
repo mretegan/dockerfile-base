@@ -81,7 +81,7 @@ COPY var /var
 
 # Because COPY doesn't respect USER...
 USER root
-RUN chown -R researcher:researcher /etc /opt /var
+RUN chown -R researcher:researcher /etc /usr/local/bin /opt /var
 USER researcher
 
 # Remove setuid & setgid flags from binaries

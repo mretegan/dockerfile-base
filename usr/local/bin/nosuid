@@ -1,12 +1,18 @@
 #!/bin/bash
 
+if [[ $(basename $0) == "sudo" ]]; then
+  if [[ "$1" =~ ^[^-] ]]; then
+    exec fsudo "$@"
+  fi
+fi
+
 cat <<'MSG'
 All the setuid binaries for this system are gone.
 
 If you want to install packages, or some other root-related command then you can
 pretend to be root using `fsudo <cmd>`.
 
-`fsudo` is an alias for `proot -S / <cmd>`. See http://proot.me/ for more info.
+`fsudo` is an alias for `proot -0 <cmd>`. See http://proot.me/ for more info.
 
 MSG
 exit 1
