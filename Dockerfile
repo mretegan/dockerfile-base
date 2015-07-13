@@ -9,6 +9,7 @@ USER root
 # Create researcher user for notebook
 RUN groupmod -n researcher notroot && \
   usermod -l researcher -m -d /home/researcher notroot && \
+  chmod u+w /home/researcher && \
   yum remove -y rootfiles && \
   rm -rf /root /var/cache/yum/* /tmp/*
 
