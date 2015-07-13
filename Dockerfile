@@ -1,25 +1,39 @@
 # DOCKER-VERSION 1.0
 
 # Base image for other DIT4C platform images
-FROM centos:7
+FROM dit4c/centos-notroot:7
 MAINTAINER t.dettrick@uq.edu.au
+
+USER root
+
+# Create researcher user for notebook
+RUN groupmod -n researcher notroot && \
+  usermod -l researcher -m -d /home/researcher notroot && \
+  yum remove -y rootfiles && \
+  rm -rf /root /var/cache/yum/* /tmp/*
+
+USER researcher
+
+# Directories that don't need to be preserved in images
+VOLUME ["/var/cache/yum", "/tmp"]
+
+COPY /usr/local/bin /usr/local/bin
 
 # Remove yum setting which blocks man page install
 RUN sed -i'' 's/tsflags=nodocs/tsflags=/' /etc/yum.conf
 
-# Directories that don't need to be preserved in images
-VOLUME ["/var/cache/yum"]
-
 # Update all packages and install docs
 # (reinstalling glibc-common would add 100MB and no docs, so it's excluded)
-RUN yum upgrade -y && rpm -qa | grep -v glibc-common | xargs yum reinstall -y
+RUN fsudo yum upgrade -y && \
+  rpm -qa | grep -v -E "glibc-common|filesystem" | xargs fsudo yum reinstall -y
 
 # Install EPEL repo
-RUN rpm -Uvh http://mirror.aarnet.edu.au/pub/epel/7/x86_64/$( \
-  curl http://mirror.aarnet.edu.au/pub/epel/7/x86_64/repoview/epel-release.html | \
-  grep -Po 'e/epel-release.*?\.rpm' | head -1)
+RUN fsudo yum install -y epel-release
 # Install Nginx repo
-RUN rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/$( \
+# - rebuild workaround from:
+#   https://github.com/docker/docker/issues/10180#issuecomment-76347566
+RUN fsudo rpm --rebuilddb && \
+  fsudo yum install -y http://nginx.org/packages/centos/7/noarch/RPMS/$(\
   curl http://nginx.org/packages/centos/7/noarch/RPMS/ | \
   grep -Po 'nginx-release.*?\.rpm' | head -1)
 
@@ -30,25 +44,23 @@ RUN rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/$( \
 # - node.js for TTY.js
 # - PIP so we can install EasyDav dependencies
 # - patching dependencies
-# - sudo (for users installing packages)
-RUN yum install -y \
+RUN fsudo yum install -y \
   supervisor \
   nginx \
   git vim-enhanced nano wget tmux screen bash-completion man \
   tar zip unzip \
   nodejs \
   python-pip \
-  patch \
-  sudo
+  patch
 
 # Install EasyDAV dependencies
-RUN pip install kid flup
+RUN fsudo pip install kid flup
 
 # Install NPM & tty-lean.js
-RUN yum install -y tar gcc-c++ && \
-  curl -L https://npmjs.org/install.sh | clean=no sh && \
-  npm install -g tty-lean.js && \
-  rm -r /root/.npm
+RUN fsudo rpm --rebuilddb && fsudo yum install -y tar gcc-c++ && \
+  curl -L https://npmjs.org/install.sh | clean=no fsudo bash && \
+  fsudo npm install -g tty-lean.js && \
+  fsudo rm -r ~/.npm
 
 # Install EasyDAV
 COPY easydav_fix-archive-download.patch /tmp/
@@ -59,28 +71,27 @@ RUN cd /opt && \
   patch -p1 < /tmp/easydav_fix-archive-download.patch && \
   cd -
 
-# Create researcher user for notebook
-RUN /usr/sbin/useradd researcher
-
 # Log directory for easydav & supervisord
 RUN mkdir -p /var/log/{easydav,supervisor}
-
-# Set default password for root, and remove password for researcher
-RUN yum install -y passwd && \
-  echo 'root:developer' | chpasswd && \
-  passwd -d researcher && passwd -u -f researcher
 
 # Add supporting files (directory at a time to improve build speed)
 COPY etc /etc
 COPY opt /opt
 COPY var /var
-# Set logging directory permissions appropriately
-RUN chown -R researcher /var/log/easydav /var/log/supervisor
+
+# Because COPY doesn't respect USER...
+USER root
+RUN chown -R researcher:researcher /etc /usr/local/bin /opt /var
+USER researcher
+
+# Remove setuid & setgid flags from binaries
+RUN find / -perm +4000 -xdev -not -type f -exec chmod u-s {} \; && \
+  find / -perm +2000 -xdev -type f -exec chmod g-s {} \;
 
 # Check nginx config is OK
 RUN nginx -t
 
-EXPOSE 80
+EXPOSE 8080
 # Run all processes through supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 
