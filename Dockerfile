@@ -61,7 +61,7 @@ RUN fsudo pip install kid flup
 RUN fsudo rpm --rebuilddb && fsudo yum install -y tar gcc-c++ && \
   curl -s -L https://npmjs.org/install.sh | clean=no fsudo bash && \
   fsudo rm -r ~/.npm
-RUN fsudo npm install -g tty-lean.js && \
+RUN fsudo npm install -g tty-lean.js@0.1.5 && \
   fsudo rm -r ~/.npm
 
 # Install EasyDAV
