@@ -7,7 +7,8 @@ MAINTAINER t.dettrick@uq.edu.au
 USER root
 
 # Create researcher user for notebook
-RUN rm -f /root/anaconda-ks.cfg && \
+RUN chown notroot:notroot / && \
+  rm -f /root/anaconda-ks.cfg && \
   groupmod -n researcher notroot && \
   usermod -l researcher -m -d /home/researcher notroot && \
   chmod u+w /home/researcher && \
