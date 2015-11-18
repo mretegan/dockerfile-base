@@ -2,7 +2,8 @@
 
 # Root directory for files that are served through WebDAV.
 # Users are denied access outside this directory.
-root_dir = '/home/researcher'
+
+root_dir = '/root/'
 
 # Root url of the WebDAV repository.
 # Can usually be None, so that the program automatically decides the path
@@ -94,4 +95,3 @@ log_file = '/var/log/easydav/access.log'
 # ERROR = 40
 # FATAL = 50
 log_level = 30
-
