@@ -37,6 +37,7 @@ RUN rpm --rebuilddb && \
 RUN yum install -y \
   supervisor \
   nginx \
+  sudo \
   git vim-enhanced nano wget tmux screen bash-completion man \
   tar zip unzip \
   nodejs \
@@ -83,6 +84,8 @@ RUN nginx -t
 EXPOSE 8080
 # Run all processes through supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+
+RUN useradd -m researcher && gpasswd -a researcher wheel
 
 # Logs do not need to be preserved when exporting
 VOLUME ["/var/log"]
