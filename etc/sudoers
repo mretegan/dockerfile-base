@@ -1,8 +1,3 @@
-## Installation and management of software
-Cmnd_Alias SOFTWARE = \
-  /bin/rpm, /usr/bin/yum, /usr/bin/dnf, \
-  /usr/bin/npm
-
 # Defaults specification
 
 #
@@ -32,4 +27,4 @@ Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin
 ## Allow root to run any commands anywhere
 root    ALL=(ALL)       ALL
 
-researcher ALL=NOPASSWD: SOFTWARE
+%wheel  ALL=(ALL)       NOPASSWD: ALL
