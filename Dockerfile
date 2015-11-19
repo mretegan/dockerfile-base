@@ -30,6 +30,7 @@ RUN rpm --rebuilddb && \
 # Install
 # - supervisord for monitoring
 # - nginx for reverse-proxying
+# - sudo and passwd for creating user/giving sudo
 # - Git and development tools
 # - node.js for TTY.js
 # - PIP so we can install EasyDav dependencies
@@ -37,7 +38,7 @@ RUN rpm --rebuilddb && \
 RUN yum install -y \
   supervisor \
   nginx \
-  sudo \
+  sudo passwd \
   git vim-enhanced nano wget tmux screen bash-completion man \
   tar zip unzip \
   nodejs \
@@ -85,7 +86,11 @@ EXPOSE 8080
 # Run all processes through supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 
-RUN useradd -m researcher && gpasswd -a researcher wheel
+RUN useradd -m researcher && \ 
+    gpasswd -a researcher wheel && \
+    passwd -d researcher && passwd -u -f researcher
+
+RUN chown -R researcher /var/log/easydav /var/log/supervisor
 
 # Logs do not need to be preserved when exporting
 VOLUME ["/var/log"]
