@@ -41,19 +41,16 @@ RUN yum install -y \
   sudo passwd \
   git vim-enhanced nano wget tmux screen bash-completion man \
   tar zip unzip \
-  nodejs \
   python-pip \
   patch
 
+# Install gotty
+RUN VERSION=v0.0.12 && \
+  curl -sL https://github.com/yudai/gotty/releases/download/$VERSION/gotty_linux_amd64.tar.gz \
+    | tar xzC /usr/local/bin
+
 # Install EasyDAV dependencies
 RUN pip install kid flup
-
-# Install NPM & tty-lean.js
-RUN rpm --rebuilddb && yum install -y tar gcc-c++ && \
-  curl -s -L https://npmjs.org/install.sh | clean=no bash && \
-  rm -r ~/.npm
-RUN npm install --unsafe-perm -g tty-lean.js@0.1.5 && \
-  rm -r ~/.npm
 
 # Install EasyDAV
 COPY easydav_fix-archive-download.patch /tmp/
