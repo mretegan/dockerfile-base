@@ -4,8 +4,6 @@
 FROM centos:7
 MAINTAINER t.dettrick@uq.edu.au
 
-USER root
-
 # Directories that don't need to be preserved in images
 VOLUME ["/var/cache/yum", "/tmp"]
 
@@ -68,13 +66,6 @@ RUN mkdir -p /var/log/{easydav,supervisor}
 COPY etc /etc
 COPY opt /opt
 COPY var /var
-
-# Because COPY doesn't respect USER...
-USER root
-
-# Remove setuid & setgid flags from binaries
-RUN find / -perm +4000 -xdev -not -type f -exec chmod u-s {} \; && \
-  find / -perm +2000 -xdev -type f -exec chmod g-s {} \;
 
 # Check nginx config is OK
 RUN nginx -t
