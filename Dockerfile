@@ -10,10 +10,11 @@ VOLUME ["/var/cache/yum", "/tmp"]
 # Remove yum setting which blocks man page install
 RUN sed -i'' 's/tsflags=nodocs/tsflags=/' /etc/yum.conf
 
-# Update all packages and install docs
-# (reinstalling glibc-common would add 100MB and no docs, so it's excluded)
+# Update all packages and install docs, except:
+# * reinstalling glibc-common would add 100MB and no docs, so it's excluded
+# * iputils install & AUFS don't currently play well (docker/docker#6980)
 RUN yum upgrade -y && \
-  rpm -qa | grep -v -E "glibc-common|filesystem" | xargs yum reinstall -y
+  rpm -qa | grep -v -E "glibc-common|filesystem|iputils" | xargs yum reinstall -y
 
 # Install EPEL repo
 RUN yum install -y epel-release
@@ -74,7 +75,7 @@ EXPOSE 8080
 # Run all processes through supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 
-RUN useradd -m researcher && \ 
+RUN useradd -m researcher && \
     gpasswd -a researcher wheel && \
     passwd -d researcher && passwd -u -f researcher
 
