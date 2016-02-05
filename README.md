@@ -3,7 +3,7 @@ dit4c/dit4c-container-base
 
 [![](https://badge.imagelayers.io/dit4c/dit4c-container-base:latest.svg)](https://imagelayers.io/?images=dit4c/dit4c-container-base:latest)
 
-The base image for DIT4C containers, which includes a [tty-lean.js][tty-lean.js] shell and file uploader, using [dit4c/centos-notroot](https://registry.hub.docker.com/u/dit4c/centos-notroot/) to allow package installation without root privileges.
+The base image for DIT4C containers, which includes a [GoTTY][gotty] shell and file uploader.
 
 The essential rules/guidelines that it follows are:
 
@@ -13,4 +13,4 @@ The essential rules/guidelines that it follows are:
   * As a result of this requirement, web services really need to exist on paths, not on "/".
 3. `/home/researcher` should contain as few extraneous files as possible.
 
-[tty-lean.js]: https://github.com/dit4c/tty-lean.js
+[gotty]: https://github.com/yudai/gotty
