@@ -1,44 +1,29 @@
 # DOCKER-VERSION 1.0
 
 # Base image for other DIT4C platform images
-FROM centos:7
+FROM debian:8
 MAINTAINER t.dettrick@uq.edu.au
 
 # Directories that don't need to be preserved in images
-VOLUME ["/var/cache/yum", "/tmp"]
+VOLUME ["/var/cache/apt", "/tmp"]
 
-# Remove yum setting which blocks man page install
-RUN sed -i'' 's/tsflags=nodocs/tsflags=/' /etc/yum.conf
-
-# Update all packages and install docs, except:
-# * reinstalling glibc-common would add 100MB and no docs, so it's excluded
-# * iputils install & AUFS don't currently play well (docker/docker#6980)
-RUN yum upgrade -y && \
-  rpm -qa | grep -v -E "glibc-common|filesystem|iputils" | xargs yum reinstall -y
-
-# Install EPEL repo
-RUN yum install -y epel-release
 # Install Nginx repo
-# - rebuild workaround from:
-#   https://github.com/docker/docker/issues/10180#issuecomment-76347566
-RUN rpm --rebuilddb && \
-  yum install -y http://nginx.org/packages/centos/7/noarch/RPMS/$(\
-  curl http://nginx.org/packages/centos/7/noarch/RPMS/ | \
-  grep -Po 'nginx-release.*?\.rpm' | head -1)
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 7BD9BF62 && \
+  echo "deb http://nginx.org/packages/debian/ jessie nginx" >> /etc/apt/sources.list && \
+  echo "deb-src http://nginx.org/packages/debian/ jessie nginx" >> /etc/apt/sources.list
 
 # Install
 # - supervisord for monitoring
 # - nginx for reverse-proxying
 # - sudo and passwd for creating user/giving sudo
 # - Git and development tools
-# - node.js for TTY.js
 # - PIP so we can install EasyDav dependencies
 # - patching dependencies
-RUN yum install -y \
+RUN apt-get update && apt-get install -y \
   supervisor \
   nginx \
   sudo passwd \
-  git vim-enhanced nano wget tmux screen bash-completion man \
+  git vim nano curl wget tmux screen bash-completion man \
   tar zip unzip \
   python-pip \
   patch
@@ -61,7 +46,7 @@ RUN cd /opt && \
   cd -
 
 # Log directory for easydav & supervisord
-RUN mkdir -p /var/log/{easydav,supervisor}
+RUN mkdir -p /var/log/easydav /var/log/supervisor
 
 # Add supporting files (directory at a time to improve build speed)
 COPY etc /etc
@@ -75,9 +60,10 @@ EXPOSE 8080
 # Run all processes through supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 
-RUN useradd -m researcher && \
-    gpasswd -a researcher wheel && \
-    passwd -d researcher && passwd -u -f researcher
+RUN useradd -m researcher -s /bin/bash && \
+    gpasswd -a researcher sudo && \
+    passwd -d researcher && passwd -u researcher && \
+    rm ~researcher/.bashrc ~researcher/.bash_logout ~researcher/.profile
 
 RUN chown -R researcher /var/log/easydav /var/log/supervisor
 

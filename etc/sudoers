@@ -27,4 +27,4 @@ Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin
 ## Allow root to run any commands anywhere
 root    ALL=(ALL)       ALL
 
-%wheel  ALL=(ALL)       NOPASSWD: ALL
+%sudo  ALL=(ALL)       NOPASSWD: ALL
