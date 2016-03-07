@@ -13,20 +13,21 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 7BD9BF62 && \
   echo "deb-src http://nginx.org/packages/debian/ jessie nginx" >> /etc/apt/sources.list
 
 # Install
+# - sudo and passwd for creating user/giving sudo
 # - supervisord for monitoring
 # - nginx for reverse-proxying
-# - sudo and passwd for creating user/giving sudo
-# - Git and development tools
-# - PIP so we can install EasyDav dependencies
 # - patching dependencies
 RUN apt-get update && apt-get install -y \
-  supervisor \
-  nginx \
-  sudo passwd \
-  git vim nano curl wget tmux screen bash-completion man \
-  tar zip unzip \
-  python-pip \
-  patch
+    sudo passwd \
+    supervisor \
+    nginx \
+    vim nano curl wget tmux screen bash-completion man tar zip unzip \
+    patch && \
+  apt-get clean
+
+
+# Install Git
+RUN apt-get update && apt-get install -y git && apt-get clean
 
 # Install gotty
 RUN VERSION=v0.0.12 && \
@@ -34,7 +35,9 @@ RUN VERSION=v0.0.12 && \
     | tar xzC /usr/local/bin
 
 # Install EasyDAV dependencies
-RUN pip install kid flup
+RUN apt-get update && \
+  apt-get install -y python-kid python-flup && \
+  apt-get clean
 
 # Install EasyDAV
 COPY easydav_fix-archive-download.patch /tmp/
@@ -63,7 +66,8 @@ CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 RUN useradd -m researcher -s /bin/bash && \
     gpasswd -a researcher sudo && \
     passwd -d researcher && passwd -u researcher && \
-    rm ~researcher/.bashrc ~researcher/.bash_logout ~researcher/.profile
+    rm ~researcher/.bashrc ~researcher/.bash_logout ~researcher/.profile && \
+    sed -i -e 's/PS1/#PS1/' /etc/bash.bashrc
 
 RUN chown -R researcher /var/log/easydav /var/log/supervisor
 
