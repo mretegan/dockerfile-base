@@ -67,7 +67,8 @@ RUN useradd -m researcher -s /bin/bash && \
     gpasswd -a researcher sudo && \
     passwd -d researcher && passwd -u researcher && \
     rm ~researcher/.bashrc ~researcher/.bash_logout ~researcher/.profile && \
-    sed -i -e 's/PS1/#PS1/' /etc/bash.bashrc
+    sed -i -e 's/PS1/#PS1/' /etc/bash.bashrc && \
+    echo 'source /etc/profile.d/prompt.sh' >> /etc/bash.bashrc
 
 RUN chown -R researcher /var/log/easydav /var/log/supervisor
 
