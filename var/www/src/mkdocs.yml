@@ -1,0 +1,16 @@
+site_name: 'Basic Shell'
+theme: material
+
+extra:
+  logo: 'images/logo.png'
+  palette:
+    primary: 'red'
+    accent: 'red'
+
+markdown_extensions:
+  - admonition
+
+pages:
+  - Home: index.md
+  - Shell Terminal: tty.md
+  - File Manager: files.md
