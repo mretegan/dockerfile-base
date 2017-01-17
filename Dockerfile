@@ -7,10 +7,13 @@ MAINTAINER t.dettrick@uq.edu.au
 # Directories that don't need to be preserved in images
 VOLUME ["/var/cache/apt", "/tmp"]
 
+# Allow HTTPS right from the start
+RUN apt-get update && apt-get install -y apt-transport-https && apt-get clean
+
 # Install Nginx repo
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 7BD9BF62 && \
-  echo "deb http://nginx.org/packages/debian/ jessie nginx" >> /etc/apt/sources.list && \
-  echo "deb-src http://nginx.org/packages/debian/ jessie nginx" >> /etc/apt/sources.list
+  echo "deb https://nginx.org/packages/debian/ jessie nginx" >> /etc/apt/sources.list && \
+  echo "deb-src https://nginx.org/packages/debian/ jessie nginx" >> /etc/apt/sources.list
 
 # Install
 # - sudo and passwd for creating user/giving sudo
