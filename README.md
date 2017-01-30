@@ -1,7 +1,7 @@
 dit4c/dit4c-container-base
 ===============================
 
-[![](https://badge.imagelayers.io/dit4c/dit4c-container-base:latest.svg)](https://imagelayers.io/?images=dit4c/dit4c-container-base:latest)
+[![](https://images.microbadger.com/badges/image/dit4c/dit4c-container-base:debian.svg)](https://microbadger.com/images/dit4c/dit4c-container-base:debian)
 
 The base image for DIT4C containers, which includes a [GoTTY][gotty] shell and file uploader.
 
