@@ -28,7 +28,6 @@ RUN apt-get update && apt-get install -y \
     patch && \
   apt-get clean
 
-
 # Install Git
 RUN apt-get update && apt-get install -y git && apt-get clean
 
@@ -70,10 +69,14 @@ RUN useradd -m researcher -s /bin/bash && \
     gpasswd -a researcher sudo && \
     passwd -d researcher && passwd -u researcher && \
     rm ~researcher/.bashrc ~researcher/.bash_logout ~researcher/.profile && \
-    sed -i -e 's/PS1/#PS1/' /etc/bash.bashrc && \
+    sed -i -e '/^PS1/s/^/#/' /etc/bash.bashrc && \
+    sed -i -e '/stdout.*uname/s/^/#/' /etc/pam.d/login && \
     echo 'source /etc/profile.d/prompt.sh' >> /etc/bash.bashrc
 
 RUN chown -R researcher /var/log/easydav /var/log/supervisor
 
 # Logs do not need to be preserved when exporting
 VOLUME ["/var/log"]
+
+# Change MOTD
+RUN sh -c '. /etc/os-release && echo "You are using $PRETTY_NAME | $HOME_URL" > /etc/motd'
