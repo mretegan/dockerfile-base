@@ -1,8 +1,8 @@
 # DOCKER-VERSION 1.0
 
-# Base image for other DIT4C platform images
+# Base image for other images
 FROM debian:8
-MAINTAINER t.dettrick@uq.edu.au
+MAINTAINER marius.retegan@esrf.fr
 
 # Directories that don't need to be preserved in images
 VOLUME ["/var/cache/apt", "/tmp"]
@@ -21,20 +21,20 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 7BD9BF62 && \
 # - nginx for reverse-proxying
 # - patching dependencies
 RUN apt-get update && apt-get install -y \
-    sudo passwd \
-    supervisor \
-    nginx \
-    vim nano curl wget tmux screen bash-completion man tar zip unzip \
-    patch && \
+  sudo passwd \
+  supervisor \
+  nginx \
+  vim nano curl wget tmux screen bash-completion man tar zip unzip \
+  patch && \
   apt-get clean
 
 # Install Git
 RUN apt-get update && apt-get install -y git && apt-get clean
 
-# Install gotty
+# Install Gotty
 RUN VERSION=v0.0.12 && \
   curl -sL https://github.com/yudai/gotty/releases/download/$VERSION/gotty_linux_amd64.tar.gz \
-    | tar xzC /usr/local/bin
+  | tar xzC /usr/local/bin
 
 # Install EasyDAV dependencies
 RUN apt-get update && \
@@ -61,17 +61,18 @@ COPY var /var
 # Check nginx config is OK
 RUN nginx -t
 
-EXPOSE 8080
+EXPOSE 80
+
 # Run all processes through supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 
 RUN useradd -m researcher -s /bin/bash && \
-    gpasswd -a researcher sudo && \
-    passwd -d researcher && passwd -u researcher && \
-    rm ~researcher/.bashrc ~researcher/.bash_logout ~researcher/.profile && \
-    sed -i -e '/^PS1/s/^/#/' /etc/bash.bashrc && \
-    sed -i -e '/stdout.*uname/s/^/#/' /etc/pam.d/login && \
-    echo 'source /etc/profile.d/prompt.sh' >> /etc/bash.bashrc
+  gpasswd -a researcher sudo && \
+  passwd -d researcher && passwd -u researcher && \
+  rm ~researcher/.bashrc ~researcher/.bash_logout ~researcher/.profile && \
+  sed -i -e '/^PS1/s/^/#/' /etc/bash.bashrc && \
+  sed -i -e '/stdout.*uname/s/^/#/' /etc/pam.d/login && \
+  echo 'source /etc/profile.d/prompt.sh' >> /etc/bash.bashrc
 
 RUN chown -R researcher /var/log/easydav /var/log/supervisor
 
