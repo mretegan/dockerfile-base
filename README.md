@@ -1,7 +1,7 @@
 mretegan/base
 =============
 
-The base image for other containers, which includes a [GoTTY][gotty] shell and file uploader.
+The base image for other images. It includes a [GoTTY][gotty] shell and WebDAV based file uploader.
 
 The essential rules/guidelines that it follows are:
 
